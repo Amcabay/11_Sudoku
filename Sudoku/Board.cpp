@@ -1,233 +1,204 @@
 #include "Board.h"
+#include "Player.h"
 
-Sudoku Game;
+int Sudoku::randomGenerator(int num)
+{
+    int random;
+
+    random = rand() % num + 1;
+
+    return random;
+}
+
+void Sudoku::fillRegion(int row, int col)
+{
+    /*int num = 0;
+    for (int i = 0; i < 3; i++) // row
+    {
+        cout << "row " << i << endl;
+        for (int j = 0; j < 3; j++) // column
+        {
+            cout << "col " << j << endl;
+
+            while (true)
+            {
+                num = randomGenerator(9);
+                cout << num << endl;
+                if (cekRegion(row, col, num))
+                {
+                    {
+                        fill(row + i, col + j, num);
+                        break;
+                    }
+                }
+            }
+        }
+    }*/
+}
+
+bool Sudoku::fillRest()
+{
+    int row, col;
+
+    // If there is no unassigned location,
+    // we are done
+    if (!findEmpty(row, col))
+        // success!
+        return true;
+
+    // Consider digits 1 to 9
+    for (int num = 1; num <= 9; num++)
+    {
+        // Check if looks promising
+        if (isValid(row, col, num))
+        {
+            // Make tentative assignment
+            board[row][col] = num;
+
+            // Return, if success
+            if (fillRest())
+                return true;
+
+            // Failure, unmake & try again
+            board[row][col] = 0;
+        }
+    }
+
+    // This triggers backtracking
+    return false;
+}
+
+bool Sudoku::findEmpty(int& row, int& col)
+{
+    for (row = 0; row < 9; row++)
+    {
+        for (col = 0; col < 9; col++)
+        {
+            if (board[row][col] == 0)
+                return true;
+        }
+    }
+    return false;
+}
 
 Sudoku::Sudoku()
 {
-    for (int i = 1; i <= 9; i++)
-        for (int j = 1; j <= 9; j++)
-            board[i][j] = 0;
-}
-
-void Sudoku::printBoard()
-{
-    for (int i = 1; i <= 9; i++)
+    srand(time(0));
+    for (int i = 0; i < 9; i++) // int board with 0
     {
-        for (int j = 1; j <= 9; j++)
+        for (int j = 0; j < 9; j++)
         {
-            if (change[i][j] == 1)
-            {
-                cout << board[i][j] << " ";
-            }
-            else cout << board[i][j] << " ";
-            if (j % 3 == 0) cout << "| ";
+            fill(i, j, 0);
         }
-        cout << endl;
-        if (i % 3 == 0) cout << "------+-------+---------" << endl;
+    }
 
+    generateNumber();
+}
+
+void Sudoku::generateNumber()
+{
+    // fill diagonal
+    /*for (int i = 0; i < 9; i += 3)   // iterating through diagonal region
+    {
+        cout << "Region " << i << " , " << i << endl;
+        fillRegion(i, i);
+    }*/
+
+    // fill remaining blocks
+    fillRest();
+
+    // remove number in block randomly
+    int count = 20; // Number of removed block
+    while (count != 0)
+    {
+        int blockId = randomGenerator(81) - 1;
+
+        // extract coordinates i  and j
+        int i = blockId / 9;
+        int j = blockId % 9;
+
+        if (board[i][j] != 0)
+        {
+            count--;
+            board[i][j] = 0;
+        }
     }
 }
 
-void Sudoku::Add_First_Cord()
+bool Sudoku::cekRegion(int rowStart, int colStart, int num)
 {
-    board[1][1] = 5; change[1][1] = 1;
-    board[1][2] = 3; change[1][2] = 1;
-    board[1][5] = 7; change[1][5] = 1;
-    board[2][1] = 6; change[2][1] = 1;
-    board[2][4] = 1; change[2][4] = 1;
-    board[2][5] = 9; change[2][5] = 1;
-    board[2][6] = 5; change[2][6] = 1;
-    board[3][2] = 9; change[3][2] = 1;
-    board[3][3] = 8; change[3][3] = 1;
-    board[3][8] = 6; change[3][8] = 1;
-    board[4][1] = 8; change[4][1] = 1;
-    board[4][5] = 6; change[4][5] = 1;
-    board[4][9] = 3; change[4][9] = 1;
-    board[5][1] = 4; change[5][1] = 1;
-    board[5][4] = 8; change[5][4] = 1;
-    board[5][6] = 3; change[5][6] = 1;
-    board[5][9] = 1; change[5][9] = 1;
-    board[6][1] = 7; change[6][1] = 1;
-    board[6][5] = 2; change[6][5] = 1;
-    board[6][9] = 6; change[6][9] = 1;
-    board[7][2] = 6; change[7][2] = 1;
-    board[7][7] = 2; change[7][7] = 1;
-    board[7][8] = 8; change[7][8] = 1;
-    board[8][4] = 4; change[8][4] = 1;
-    board[8][5] = 1; change[8][5] = 1;
-    board[8][6] = 9; change[8][6] = 1;
-    board[8][9] = 5; change[8][9] = 1;
-    board[9][5] = 8; change[9][5] = 1;
-    board[9][8] = 7; change[9][8] = 1;
-    board[9][9] = 9; change[9][9] = 1;
-}
-
-bool Sudoku::Check_Conflicts(int p, int i, int j)
-{
-    for (int k = 1; k <= 9; k++)
-        if (board[i][k] == p) return false;
-
-    for (int q = 1; q <= 9; q++)
-        if (board[q][j] == p) return false;
-
-    /*
-      *00
-      000
-      000
-    */
-    if ((j == 1 || j == 4 || j == 7) && (i == 1 || i == 4 || i == 7))
-    {
-        if (board[i][j + 1] == p || board[i][j + 2] == p || board[i + 1][j] == p ||
-            board[i + 2][j] == p || board[i + 1][j + 1] == p || board[i + 1][j + 2] == p ||
-            board[i + 2][j + 1] == p || board[i + 2][j + 2] == p)return false;
-    }
-
-
-    /*
-      000
-      000
-      *00
-    */
-    if ((j == 1 || j == 4 || j == 7) && (i == 3 || i == 6 || i == 9))
-    {
-        if (board[i - 1][j] == p || board[i - 2][j] == p || board[i][j + 1] == p ||
-            board[i][j + 2] == p || board[i - 1][j + 1] == p || board[i - 1][j + 2] == p ||
-            board[i - 2][j + 1] == p || board[i - 2][j + 2] == p)return false;
-    }
-
-    /*
-      000
-      *00
-      000
-    */
-    if ((j == 1 || j == 4 || j == 7) && (i == 2 || i == 5 || i == 8))
-    {
-        if (board[i - 1][j] == p || board[i + 1][j] == p || board[i - 1][j + 1] == p ||
-            board[i][j + 1] == p || board[i + 1][j + 1] == p || board[i + 1][j + 2] == p ||
-            board[i][j + 2] == p || board[i + 1][j + 2] == p)return false;
-    }
-
-
-    /*
-      0*0
-      000
-      000
-    */
-    if ((j == 2 || j == 5 || j == 8) && (i == 1 || i == 5 || i == 7))
-    {
-        if (board[i - 1][j] == p || board[i + 1][j] == p || board[i - 1][j + 1] == p ||
-            board[i][j + 1] == p || board[i + 1][j + 1] == p || board[i + 1][j + 2] == p ||
-            board[i][j + 2] == p || board[i + 1][j + 2] == p)return false;
-    }
-
-    /*
-      000
-      0*0
-      000
-    */
-    if ((j == 2 || j == 5 || j == 8) && (i == 2 || i == 5 || i == 8))
-    {
-        if (board[i - 1][j] == p || board[i - 1][j - 1] == p || board[i - 1][j + 1] == p ||
-            board[i][j + 1] == p || board[i][j - 1] == p || board[i + 1][j + 1] == p ||
-            board[i][j] == p || board[i + 1][j - 1] == p)return false;
-    }
-
-
-    /*
-      000
-      000
-      0*0
-    */
-    if ((j == 2 || j == 5 || j == 8) && (i == 3 || i == 6 || i == 9))
-    {
-        if (board[i][j - 1] == p || board[i][j + 1] == p || board[i - 1][j] == p ||
-            board[i - 1][j + 1] == p || board[i - 1][j - 1] == p || board[i - 2][j] == p ||
-            board[i - 1][j + 1] == p || board[i - 2][j - 1] == p) return false;
-    }
-
-    /*
-      00*
-      000
-      000
-    */
-    if ((j == 3 || j == 6 || j == 9) && (i == 1 || i == 4 || i == 7))
-    {
-        if (board[i][j - 1] == p || board[i][j - 2] == p || board[i + 1][j] == p ||
-            board[i + 1][j - 1] == p || board[i + 1][j - 2] == p || board[i + 2][j] == p ||
-            board[i + 2][j - 1] == p || board[i + 2][j - 2] == p) return false;
-    }
-
-    /*
-      000
-      00*
-      000
-    */
-    if ((j == 3 || j == 6 || j == 9) && (i == 2 || i == 5 || i == 8))
-    {
-        if (board[i - 1][j] == p || board[i - 1][j - 1] == p || board[i - 1][j - 2] == p ||
-            board[i][j - 1] == p || board[i][j - 2] == p || board[i + 1][j] == p ||
-            board[i + 1][j - 1] == p || board[i + 1][j - 2] == p) return false;
-    }
-
-    /*
-      000
-      000
-      00*
-    */
-    if ((j == 3 || j == 6 || j == 9) && (i == 3 || i == 6 || i == 9))
-    {
-        if (board[i][j - 1] == p || board[i][j - 1] == p || board[i - 1][j] == p ||
-            board[i - 1][j - 1] == p || board[i - 1][j - 2] == p || board[i - 2][j] == p ||
-            board[i - 2][j - 1] == p || board[i - 2][j - 2] == p) return false;
-    }
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++)
+            if (board[rowStart + i][colStart + j] == num)
+                return false;
 
     return true;
 }
 
-void Sudoku::Help_Solve(int i, int j)
+bool Sudoku::cekRow(int row, int num)
 {
-    if (j <= 0)
+    for (int j = 0; j < 9; j++)
     {
-        i = i - 1;
-        j = 9;
+        if (board[row][j] == num)
+            return false;
     }
-    if (change[i][j] == 1) return Game.Help_Solve(i, j - 1);
-    for (int p = 1; p <= 9; p++)
-        if (Game.Check_Conflicts(p, i, j))
-        {
-            board[i][j] = p;
-            return;
-        }
-    return Game.Help_Solve(i, j - 1);
+    return true;
 
 }
 
-void Sudoku::Solve()
+bool Sudoku::cekKolom(int col, int num)
 {
-    for (int i = 1; i <= 9; i++)
+    for (int i = 0; i < 9; i++)
     {
-        for (int j = 1; j <= 9; j++)
+        if (board[i][col] == num)
+            return false;
+    }
+    return true;
+}
+
+bool Sudoku::isValid(int row, int col, int num)
+{
+    return (cekKolom(col, num) && cekRow(row, num) && cekRegion(row - row % 3, col - col % 3, num));
+}
+
+void Sudoku::fill(int row, int col, int num)
+{
+    board[row][col] = num;
+}
+
+void Sudoku::remove(int row, int col)
+{
+    board[row][col] = 0;
+}
+
+void Sudoku::printBoard()
+{
+    for (int i = 0; i < 9; i++)
+    {
+        for (int j = 0; j < 9; j++)
         {
-            if (board[i][j] == 0 && change[i][j] == 0)
+            if (board[i][j] == 0)
             {
-                Game.Help_Solve(i, j);
+                cout << " ";
+            }
+            else
+            {
+                cout << board[i][j];
+                cout << " ";
+            }
+
+            if ((j + 1) % 3 == 0)
+            {
+                if (j != 8)
+                    cout << " | ";
             }
         }
+        cout << endl;
+
+        if ((i + 1) % 3 == 0)
+        {
+            cout << "-----------------------" << endl;
+        }
     }
-
-    for (int i = 1; i <= 9; i++)
-        for (int j = 1; j <= 9; j++)
-            if (board[i][j] == 0) Game.Help_Solve(i, j);
-
 }
 
-
-int main()
-{
-    Game.Add_First_Cord();
-    Game.Solve();
-    Game.printBoard();
-
-    system("pause");
-    return 0;
-}
